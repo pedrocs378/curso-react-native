@@ -2,6 +2,7 @@ import React, { Component } from 'react'
 import { 
     View, 
     Text, 
+    Alert,
     ImageBackground, 
     StyleSheet, 
     StatusBar, 
@@ -9,6 +10,7 @@ import {
     TouchableOpacity, 
     Platform
 } from 'react-native'
+import AsyncStorage from '@react-native-community/async-storage'
 import Icon from 'react-native-vector-icons/FontAwesome'
 
 import moment from 'moment'
@@ -16,30 +18,26 @@ import 'moment/locale/pt-br'
 
 import commonStyles from '../commonStyles'
 import todayImage from '../../assets/imgs/today.jpg'
-
 import Task from '../components/Task'
 import AddTask from './AddTask'
 
+const initialState = { 
+    showDoneTasks: true,
+    showAddTask: false,
+    visibleTasks: [],
+    tasks: [] 
+}
+
 export default class TaskList extends Component {
     state = {
-        showDoneTasks: true,
-        showAddTask: false,
-        visibleTasks: [],
-        tasks: [{
-            id: Math.random(),
-            desc: 'Comprar Livro de React Native',
-            estimateAt: new Date(),
-            doneAt: new Date(),
-        }, {
-            id: Math.random(),
-            desc: 'Comprar Livro de React Native',
-            estimateAt: new Date(),
-            doneAt: null,
-        },]
+        ...initialState
     }
 
-    componentDidMount = () => {
-        this.handleFilterTasks()
+    componentDidMount = async () => {
+        const stateString = await AsyncStorage.getItem('stateTasks')
+        const stateParsed = JSON.parse(stateString) || initialState
+
+        this.setState(stateParsed, this.handleFilterTasks)
     }
 
     handleToggleFilter = () => {
@@ -58,6 +56,7 @@ export default class TaskList extends Component {
         }
 
         this.setState({ visibleTasks })
+        AsyncStorage.setItem('stateTasks', JSON.stringify(this.state))
     }
 
     handleToggleTask = taskId => {
@@ -71,6 +70,28 @@ export default class TaskList extends Component {
 
         this.setState({ tasks }, this.handleFilterTasks)
     }
+
+    handleAddTask = newTask => {
+        if (!newTask.desc || !newTask.desc.trim()) {
+            Alert.alert('Dados inválidos', 'Descrição não informada!')
+            return
+        }
+
+        const tasks = [...this.state.tasks]
+        tasks.push({ 
+            id: Math.random(),
+            desc: newTask.desc,
+            estimateAt: newTask.date,
+            doneAt: null
+         })
+
+         this.setState({ tasks, showAddTask: false }, this.handleFilterTasks)
+    }
+
+    handleDeleteTask = id => {
+        const tasks = this.state.tasks.filter(task => task.id !== id)
+        this.setState({ tasks }, this.handleFilterTasks)
+    }
     
     render() {
         const today = moment().locale('pt-br').format('ddd, D [de] MMMM')
@@ -80,6 +101,7 @@ export default class TaskList extends Component {
                 <StatusBar backgroundColor={Platform.OS === 'android' ? '#751314' : null} />
                 <AddTask 
                     isVisible={this.state.showAddTask} 
+                    onSave={this.handleAddTask}
                     onCancel={() => this.setState({ showAddTask: false })} 
                 />
                 <ImageBackground style={styles.background} source={todayImage}>
@@ -101,7 +123,10 @@ export default class TaskList extends Component {
                     <FlatList 
                         data={this.state.visibleTasks} 
                         keyExtractor={item => String(item.id)} 
-                        renderItem={({ item }) => <Task {...item} toggleTask={this.handleToggleTask} />}
+                        renderItem={({ item }) => <Task {...item} 
+                            onToggleTask={this.handleToggleTask} 
+                            onDelete={this.handleDeleteTask} 
+                        />}
                     />   
                 </View>
                 <TouchableOpacity 

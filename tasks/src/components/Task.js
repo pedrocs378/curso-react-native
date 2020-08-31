@@ -1,5 +1,12 @@
-import React from 'react'
-import { View, Text, StyleSheet, TouchableWithoutFeedback } from 'react-native'
+import React, { useState } from 'react'
+import { 
+    View, 
+    Text, 
+    StyleSheet, 
+    TouchableWithoutFeedback, 
+    TouchableOpacity 
+} from 'react-native'
+import Swipeable from 'react-native-gesture-handler/Swipeable'
 import Icon from 'react-native-vector-icons/FontAwesome'
 
 import moment from 'moment'
@@ -25,37 +32,70 @@ function handleGetCheckView(doneAt) {
 }
 
 export default props => {
+    const [showLeft, setShowLeft] = useState(true)
+    const [showRight, setShowRight] = useState(true)
 
     const doneOrNotStyle = props.doneAt != null ? { textDecorationLine: 'line-through' } : {}
 
     const date = props.doneAt ? props.doneAt : props.estimateAt
     const formattedDate = moment(date).locale('pt-br').format('ddd, D [de] MMMM')
 
-    return (
-        <View style={styles.container}>
-            <TouchableWithoutFeedback onPress={() => props.toggleTask(props.id)}>
-                <View style={styles.checkConteiner}>
-                    {handleGetCheckView(props.doneAt)}
-                </View>
-            </TouchableWithoutFeedback>
-            <View>
-                <Text style={[styles.desc, doneOrNotStyle]}>{props.desc}</Text>
-                <Text style={styles.date}>{formattedDate}</Text>
+    const getRightContent = () => {
+        return (
+            <TouchableOpacity 
+                style={styles.right} 
+                onPress={() => props.onDelete && props.onDelete(props.id)}
+            >
+                <Icon name="trash" size={30} color='white' />
+            </TouchableOpacity>
+        )
+    }
+
+    const getLeftContent = () => {
+        return (
+            <View style={styles.left}>
+                <Icon name="trash" size={20} color='white' style={styles.excludeIcon} />
+                <Text style={styles.excludeText}>Excluir</Text>
             </View>
+        )
+    }
+
+    return (
+        <View style={styles.content}>
+            <Swipeable 
+                renderLeftActions={getLeftContent} 
+                renderRightActions={getRightContent}
+                onSwipeableLeftOpen={() => props.onDelete && props.onDelete(props.id)}
+            >
+                <View style={styles.container}>
+                    <TouchableWithoutFeedback onPress={() => props.onToggleTask(props.id)}>
+                        <View style={styles.checkConteiner}>
+                            {handleGetCheckView(props.doneAt)}
+                        </View>
+                    </TouchableWithoutFeedback>
+                    <View style={styles.descContainer}>
+                        <Text style={[styles.desc, doneOrNotStyle]}>{props.desc}</Text>
+                        <Text style={styles.date}>{formattedDate}</Text>
+                    </View>
+                </View>
+            </Swipeable>
         </View>
     )
 }
 
 const styles = StyleSheet.create({
-    container: {
-        flexDirection: 'row',
+    content: {
         borderColor: '#AAA',
         borderWidth: 1,
         borderRadius: 10,
         marginTop: 5,
-        marginBottom: 5,
+        marginHorizontal: 10,
+        backgroundColor: 'white',
+    },
+    container: {
+        flexDirection: 'row',  
         alignItems: 'center',
-        paddingVertical: 10
+        paddingVertical: 18
     },
     checkConteiner: {
         width: "20%",
@@ -67,7 +107,7 @@ const styles = StyleSheet.create({
         width: 25,
         borderRadius: 13,
         borderWidth: 1,
-        borderColor: '#555'
+        borderColor: '#555',
     },
     done: {
         height: 25,
@@ -86,5 +126,29 @@ const styles = StyleSheet.create({
         fontFamily: commonStyles.fontFamily,
         color: commonStyles.colors.subText,
         fontSize: 12
+    },
+    right: {
+        backgroundColor: 'red',
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'flex-end',
+        paddingHorizontal: 25,
+        borderRadius: 10,
+    },
+    left: {
+        flex: 1,
+        backgroundColor: 'red',
+        flexDirection: 'row',
+        alignItems: 'center',
+        borderRadius: 10,
+    },
+    excludeText: {
+        fontFamily: commonStyles.fontFamily,
+        color: 'white',
+        fontSize: 15,
+        margin: 10
+    },
+    excludeIcon: {
+        marginLeft: 10
     }
 })
