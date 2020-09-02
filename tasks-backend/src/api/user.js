@@ -13,7 +13,7 @@ module.exports = app => {
 
             const user = {
                 name: req.body.name,
-                email: req.body.email,
+                email: req.body.email.toLowerCase(),
                 password
             }
 
