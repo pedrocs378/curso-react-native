@@ -6,8 +6,9 @@ import {
     View, 
     TouchableOpacity,
     Alert,
-    StatusBar
+    StatusBar,
 } from 'react-native'
+import Icon from 'react-native-vector-icons/FontAwesome'
 import axios from 'axios'
 
 import AuthInput from '../components/AuthInput'
@@ -34,13 +35,12 @@ export default class Auth extends Component {
         if (this.state.stageNew) {
             this.signup()
         } else {
-            Alert.alert('Sucesso!', 'Logar')
+            this.signin()
         }
     }
 
     signup = async () => {
         try {
-            console.log('...inserindo')
             await axios.post(server + '/signup', {
                 name: this.state.name,
                 email: this.state.email,
@@ -55,7 +55,33 @@ export default class Auth extends Component {
         }
     }
 
+    signin = async () => {
+        try {
+            const response = await axios.post(server + '/signin', {
+                email: this.state.email,
+                password: this.state.password   
+            })
+
+            axios.defaults.headers.common['Authorization'] = 'bearer ' + response.data.token
+            this.props.navigation.navigate('Home')
+        } catch(e) {
+            showError(e)
+        }
+    }
+
     render() {
+
+        const validations = []
+        validations.push(this.state.email && this.state.email.includes('@'))
+        validations.push(this.state.password && this.state.password.length >= 6)
+
+        if (this.state.stageNew) {
+            validations.push(this.state.name && this.state.name.trim().length >= 3)      
+            validations.push(this.state.password === this.state.confirmPassword)   
+        }
+
+        const validForm = validations.reduce((total, current) => total && current)
+
         return (
             <ImageBackground style={styles.background} source={loginImg}>
                 <StatusBar backgroundColor="#010A05"  />
@@ -70,8 +96,9 @@ export default class Auth extends Component {
                     {
                         this.state.stageNew &&
                         <AuthInput
-                            icon="user"
                             style={styles.input}
+                            icon="user"
+                            focusable={this.state.stageNew ? true : false}
                             placeholder="Nome"
                             value={this.state.name}
                             textContentType="name"
@@ -82,33 +109,38 @@ export default class Auth extends Component {
                         icon="at" 
                         style={styles.input} 
                         placeholder="Email" 
+                        focusable={this.state.stageNew ? false : true}
                         value={this.state.email}
                         textContentType="emailAddress"
                         onChangeText={email => this.setState({ email })}
                     />
                     <AuthInput 
-                        icon="lock"
                         style={styles.input} 
+                        icon="lock"
+                        showIconPass
                         placeholder="Senha" 
                         value={this.state.password}
                         textContentType="password"
-                        secureTextEntry={true}
                         onChangeText={password => this.setState({ password })}
                     />
                     {
                         this.state.stageNew &&
                         <AuthInput
-                            icon="asterisk"
                             style={styles.input}
+                            icon="asterisk"
+                            showIconPass
                             placeholder="Confirme a senha"
                             value={this.state.confirmPassword}
                             textContentType="password"
-                            secureTextEntry={true}
                             onChangeText={confirmPassword => this.setState({ confirmPassword })}
                         />
                     }
-                    <TouchableOpacity activeOpacity={0.7} onPress={this.handleSigninOrSignup}>
-                        <View style={styles.button}>
+                    <TouchableOpacity 
+                        activeOpacity={0.7} 
+                        onPress={this.handleSigninOrSignup}
+                        disabled={!validForm}
+                    >
+                        <View style={[styles.button, validForm ? {} : { backgroundColor: '#AAA' }]}>
                             <Text style={styles.buttonText}>
                                 {
                                     this.state.stageNew ? 'Registrar' : 'Entrar'
@@ -138,9 +170,10 @@ const styles = StyleSheet.create({
         justifyContent: 'center'
     },
     title: {
-        fontFamily: commonStyles.fontFamily,
-        color: commonStyles.colors.secondary,
-        fontSize: 70,
+        fontFamily: commonStyles.fontTitle,
+        color: '#080',
+        fontSize: 100,
+        fontWeight: 'bold',
         marginBottom: 10
     },
     subtitle: {

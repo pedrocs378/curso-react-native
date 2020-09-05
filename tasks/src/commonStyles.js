@@ -1,5 +1,6 @@
 export default {
-    fontFamily: 'Lato',
+    fontTitle: 'cursive',
+    fontFamily: 'Roboto-Medium',
     colors: {
         today: '#B13B44',
         tomorrow: '',
