@@ -8,7 +8,7 @@ import {
     Alert,
     StatusBar,
 } from 'react-native'
-import Icon from 'react-native-vector-icons/FontAwesome'
+import AsyncStorage from '@react-native-community/async-storage'
 import axios from 'axios'
 
 import AuthInput from '../components/AuthInput'
@@ -62,8 +62,9 @@ export default class Auth extends Component {
                 password: this.state.password   
             })
 
+            AsyncStorage.setItem('userData', JSON.stringify(response.data))
             axios.defaults.headers.common['Authorization'] = 'bearer ' + response.data.token
-            this.props.navigation.navigate('Home')
+            this.props.navigation.navigate('Home', response.data)
         } catch(e) {
             showError(e)
         }
@@ -98,7 +99,7 @@ export default class Auth extends Component {
                         <AuthInput
                             style={styles.input}
                             icon="user"
-                            focusable={this.state.stageNew ? true : false}
+                            autoFocus={this.state.stageNew ? true : false}
                             placeholder="Nome"
                             value={this.state.name}
                             textContentType="name"
@@ -108,8 +109,7 @@ export default class Auth extends Component {
                     <AuthInput
                         icon="at" 
                         style={styles.input} 
-                        placeholder="Email" 
-                        focusable={this.state.stageNew ? false : true}
+                        placeholder="Email"
                         value={this.state.email}
                         textContentType="emailAddress"
                         onChangeText={email => this.setState({ email })}

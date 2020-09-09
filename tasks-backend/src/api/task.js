@@ -2,14 +2,9 @@ const moment = require('moment')
 
 module.exports = app => {
     const getTasks = (req, res) => {
-        // const date = req.query.date 
-        //     ? req.query.date
-        //     : moment().endOf('day').toDate()
-    
-        const day = moment().endOf('day').toDate().getDate()
-        const month = moment().endOf('day').toDate().getUTCMonth()
-        const year = moment().endOf('day').toDate().getFullYear()
-        const date = year + '-' + month + '-' + day
+        const date = req.query.date 
+            ? req.query.date
+            : moment().format('YYYY-MM-DDT23:59:59.000Z')
 
         app.db('tasks')
             .where({ userId: req.user.id })
@@ -48,14 +43,11 @@ module.exports = app => {
     }
 
     const updateTaskDoneAt = (req, res, doneAt) => {
-        const day = moment(doneAt).toDate().getDate()
-        const month = moment(doneAt).toDate().getUTCMonth()
-        const year = moment(doneAt).toDate().getFullYear()
-        const date = year + '-' + month + '-' + day
+        const date = doneAt ? doneAt : null
         app.db('tasks')
             .where({ id: req.params.id, userId: req.user.id })
             .update({ doneAt: date })
-            .then(_ => { res.status(204).send(); console.log(date) })
+            .then(_ => res.status(204).send())
             .catch(err => res.status(400).json(err))
     }
 
@@ -70,6 +62,7 @@ module.exports = app => {
                 }
 
                 const doneAt = task.doneAt ? null : new Date()
+
                 updateTaskDoneAt(req, res, doneAt)
             })
             .catch(err => res.status(400).json(err))
