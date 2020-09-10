@@ -6,14 +6,16 @@ import {
     Platform,
     Image
 } from 'react-native'
+
 import icon from '../../assets/imgs/icon.png'
+import Icon from 'react-native-vector-icons/FontAwesome'
 
 class Header extends Component {
     render() {
         return (
             <View style={styles.container}>
                 <View style={styles.rowContainer}>
-                    <Image source={icon} style={styles.image} />
+                    <Icon name="camera" size={22} style={{ marginTop: 5 }} color="#444" />
                     <Text style={styles.title}>Instagram</Text>
                 </View>
             </View>
@@ -27,6 +29,7 @@ const styles = StyleSheet.create({
         padding: 10,
         borderBottomWidth: 1,
         borderColor: '#bbb',
+        width: '100%'
     },
     rowContainer: {
         flexDirection: 'row',
@@ -38,10 +41,11 @@ const styles = StyleSheet.create({
         resizeMode: 'contain'
     },
     title: {
-        color: '#000',
-        fontFamily: 'serif',
-        height: 30,
-        fontSize: 22
+        color: '#444',
+        fontFamily: 'shelter',
+        height: 35,
+        fontSize: 35,
+        marginLeft: 10
     }
 })
 

@@ -1,11 +1,18 @@
 import React, { Component } from 'react'
 import { StyleSheet, View, Image, Dimensions } from 'react-native'
 
+import Author from './Author'
+import Coments from './Coments'
+import AddComment from './AddComment'
+
 class Post extends Component {
     render() {
         return (
             <View style={styles.container}>
                 <Image source={this.props.image} style={styles.image} />
+                <Author email={this.props.email} nickname={this.props.nickname} />
+                <Coments comments={this.props.comments} />
+                <AddComment />
             </View>
         )
     }
@@ -14,7 +21,6 @@ class Post extends Component {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: 'white'
     },
     image: {
         width: Dimensions.get('window').width,
