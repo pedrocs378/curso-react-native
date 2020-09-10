@@ -50,7 +50,7 @@ const AddPhoto = () => {
                 </View>
                 <TouchableOpacity 
                     delayPressIn={0} 
-                    activeOpacity={0.7} 
+                    activeOpacity={0.7}
                     onPress={pickImage} 
                     style={styles.button}
                 > 
@@ -58,6 +58,7 @@ const AddPhoto = () => {
                 </TouchableOpacity>
                 <TextInput 
                     placeholder='Adicionar comentário...' 
+                    multiline={true}
                     style={styles.input} 
                     value={comment} 
                     onChangeText={comment => setComment(comment)}
