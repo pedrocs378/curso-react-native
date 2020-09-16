@@ -11,9 +11,13 @@ import {
     ScrollView,
     Alert
 } from 'react-native'
+import { connect } from 'react-redux'
+import { addPost } from '../store/actions/actionPosts'
 import ImagePicker from 'react-native-image-picker'
 
-const AddPhoto = () => {
+const noUser = "Você precisa estar logado para adicionar fotos!"
+
+const AddPhoto = (props) => {
     const [image, setImage] = useState({
         uri: null,
         base64: null
@@ -21,6 +25,11 @@ const AddPhoto = () => {
     const [comment, setComment] = useState('')
 
     async function pickImage() {
+        if (!props.name) {
+            Alert.alert('Falha!', noUser)
+            return
+        }
+
         ImagePicker.showImagePicker({
             title: 'Tire uma foto ou escolha da galeria',
             maxHeight: 600,
@@ -37,7 +46,30 @@ const AddPhoto = () => {
     }
 
     async function save() {
-        Alert.alert('Imagem adicionada!', comment)
+        if (!props.name) {
+            Alert.alert('Falha!', noUser)
+            return
+        }
+
+        if (!image.uri) {
+            Alert.alert('Falha!', 'Você precisa escolher ou tirar uma foto!')
+            return
+        }
+
+        props.onAddPost({
+            id: Math.random(),
+            nickname: props.name,
+            email: props.email,
+            image: image,
+            comments: [{
+                nickname: props.name,
+                comment: comment
+            }]
+        })
+
+        setImage(null)
+        setComment('')
+        props.navigation.navigate('Feed')
     }
 
     return (
@@ -61,6 +93,7 @@ const AddPhoto = () => {
                     multiline={true}
                     style={styles.input} 
                     value={comment} 
+                    editable={props.name != null}
                     onChangeText={comment => setComment(comment)}
                 />
                 <TouchableOpacity 
@@ -92,7 +125,8 @@ const styles = StyleSheet.create({
         width: '90%',
         height: Dimensions.get('window').width * 3 / 4,
         backgroundColor: '#eee',
-        marginTop: 10
+        marginTop: 10,
+        borderRadius: 20,
     },
     image: {
         width: '100%',
@@ -121,4 +155,19 @@ const styles = StyleSheet.create({
 })
 
 
-export default AddPhoto
+const mapStateToProps = ({ user }) => {
+    return {
+        email: user.email,
+        name: user.name
+    }
+}
+
+const mapDispatchToProps = dispatch => {
+    return {
+        onAddPost: post => dispatch(addPost(post))
+    }
+}
+
+export default connect(mapStateToProps, mapDispatchToProps)(AddPhoto)
+
+// export default AddPhoto
